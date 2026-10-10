@@ -14,7 +14,7 @@ Pieza	Detalle
 HTML5	Estructura de la página
 Tailwind CSS	Cargado por CDN (`cdn.tailwindcss.com`), con `darkMode: 'class'`
 JavaScript (Vanilla)	Lógica integrada en `index.html`, sin frameworks
-API de Gemini	Modelo `gemini-2.5-flash`, llamado con `fetch` desde el navegador
+API de Gemini	Modelo `gemini-3.8-flash`, llamado con `fetch` desde el navegador
 Secciones de la interfaz
 Cabecera con título y botón para cambiar entre modo oscuro (por defecto) y claro.
 Panel de control: campo de API Key (tipo password), selector de nicho (con opción "Otro" para escribirlo) y botón Generar Ideas de Creativos con spinner de carga.
@@ -25,18 +25,20 @@ El usuario ingresa su API Key y elige un nicho.
 `buildPrompt(niche)` construye el prompt con las instrucciones de Media Buyer y neuromarketing, y le añade una semilla aleatoria y ángulos sugeridos al azar para que cada generación sea distinta.
 `callGemini()` hace un `POST` a:
 ```
-   https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+   https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent
    ```
 La clave se envía en la cabecera `x-goog-api-key` (no en la URL).
 `temperature: 1.4`, `topP: 0.95`, `topK: 64` para favorecer la creatividad.
-Timeout de 90 segundos con `AbortController`.
-La respuesta (HTML con clases de Tailwind) pasa por `sanitizeHTML()`, que elimina `<script>`, `<iframe>`, atributos `on\*` y enlaces `javascript:`, y luego se inyecta en `#results`.
+Usa streaming (`streamGenerateContent`): las ideas aparecen una a una mientras se generan.
+Dos temporizadores con `AbortController`: 75 s sin recibir datos y 4 min en total.
+La respuesta (HTML con clases de Tailwind) pasa por `sanitizeHTML()`, que elimina `<script>`, `<iframe>`, atributos `on*` y enlaces `javascript:`, y luego se inyecta en `#results`.
 Los errores (clave inválida, cuota, timeout, sin conexión, respuesta bloqueada) se muestran como notificaciones en pantalla.
 Parámetros que puedes modificar
 Están al inicio del bloque `<script>` de `index.html`:
 ```js
-const MODEL = 'gemini-2.5-flash';  // modelo de Gemini a usar
-const TIMEOUT\_MS = 90000;          // tiempo máximo de espera (ms)
+const MODEL = 'gemini-3.8-flash';  // modelo de Gemini a usar
+const IDLE_TIMEOUT_MS = 75000;     // máximo sin recibir datos de la API (ms)
+const TOTAL_TIMEOUT_MS = 240000;   // máximo total de la generación (ms)
 ```
 Para añadir nichos, agrega una línea `<option>` dentro del `<select id="niche">`.
 ---
@@ -100,7 +102,8 @@ Mensaje / síntoma	Causa probable	Solución
 "Acceso denegado" (403)	La clave no tiene permisos o tiene restricciones	Revisa las restricciones de la clave en Google Cloud
 "Límite de uso alcanzado" (429)	Cuota gratuita agotada o demasiadas solicitudes	Espera unos minutos o revisa tu cuota
 "Modelo no encontrado" (404)	El nombre del modelo cambió o fue retirado	Cambia `MODEL` por un modelo vigente de Gemini
-"Tiempo de espera agotado"	La API tardó más de 90 s	Inténtalo de nuevo o sube `TIMEOUT\_MS`
+"La API dejó de responder"	Más de 75 s sin datos de la API	Inténtalo de nuevo o sube `IDLE_TIMEOUT_MS`
+"La generación superó el tiempo máximo"	La respuesta tardó más de 4 min	Inténtalo de nuevo o sube `TOTAL_TIMEOUT_MS`
 "No se pudo conectar con la API"	Sin internet o un bloqueador de anuncios/extensión interfiere	Revisa la conexión o desactiva extensiones
 "La respuesta no tuvo el formato esperado"	Gemini no devolvió las 10 tarjetas en HTML	Pulsa de nuevo el botón para regenerar
 El diseño se ve sin estilos	El CDN de Tailwind no cargó	Revisa tu conexión a internet
