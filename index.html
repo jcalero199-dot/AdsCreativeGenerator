@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AdsCreative Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .toast-enter { animation: toastIn .25s ease-out; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen antialiased">
+
+  <!-- Contenedor de notificaciones -->
+  <div id="toasts" class="fixed top-4 right-4 z-50 flex flex-col gap-2 w-[calc(100%-2rem)] max-w-sm"></div>
+
+  <div class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
+
+    <!-- Header -->
+    <header class="flex items-start justify-between gap-4 mb-10">
+      <div>
+        <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1 mb-3">
+          Meta Ads · WhatsApp &amp; Messenger
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+          AdsCreative <span class="bg-gradient-to-r from-emerald-400 to-sky-400 bg-clip-text text-transparent">Generator</span>
+        </h1>
+        <p class="mt-2 text-slate-500 dark:text-slate-400 max-w-2xl">
+          Genera 10 ideas de creativos persuasivos para campañas de venta por mensajes, cada una con un sesgo cognitivo y un ángulo de venta distinto.
+        </p>
+      </div>
+      <button id="themeToggle" type="button" class="shrink-0 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="Cambiar tema">
+        <span id="themeIcon">☀️</span>
+      </button>
+    </header>
+
+    <!-- Panel de control -->
+    <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm">
+      <div class="grid gap-5 md:grid-cols-2">
+
+        <div>
+          <label for="apiKey" class="block text-sm font-medium mb-1.5">API Key de Gemini</label>
+          <div class="relative">
+            <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="AIza..."
+              class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            <button id="toggleKey" type="button" class="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-200 text-xs" aria-label="Mostrar u ocultar API Key">Ver</button>
+          </div>
+          <label class="mt-2 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 cursor-pointer select-none">
+            <input id="rememberKey" type="checkbox" class="rounded border-slate-400 text-emerald-500 focus:ring-emerald-500" />
+            Recordar en este navegador (localStorage)
+          </label>
+          <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-500">
+            Tu clave se usa solo en tu navegador y se envía únicamente a Google. Consíguela gratis en
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="text-emerald-500 hover:underline">Google AI Studio</a>.
+          </p>
+        </div>
+
+        <div>
+          <label for="niche" class="block text-sm font-medium mb-1.5">Nicho</label>
+          <select id="niche"
+            class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <option value="" disabled selected>Selecciona un nicho…</option>
+            <option>Bienes Raíces</option>
+            <option>Odontología</option>
+            <option>Venta de Software / SaaS</option>
+            <option>Telecomunicaciones / Internet</option>
+            <option>Info-productos / Cursos Online</option>
+            <option>Ropa / E-commerce</option>
+            <option>Estética y Belleza</option>
+            <option>Clínicas de Salud y Bienestar</option>
+            <option>Gimnasios y Fitness</option>
+            <option>Restaurantes y Delivery</option>
+            <option>Educación y Academias</option>
+            <option>Servicios Legales</option>
+            <option>Seguros</option>
+            <option>Automotriz (Venta y Servicio)</option>
+            <option>Construcción y Remodelación</option>
+            <option>Viajes y Turismo</option>
+            <option>Servicios para el Hogar</option>
+            <option value="__otro">Otro (escribir manualmente)…</option>
+          </select>
+          <input id="customNiche" type="text" maxlength="80" placeholder="Escribe tu nicho (ej. Veterinaria)"
+            class="hidden mt-2 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+        </div>
+      </div>
+
+      <button id="generateBtn" type="button"
+        class="mt-6 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold px-6 py-3 transition shadow-lg shadow-emerald-500/20">
+        <svg id="spinner" class="hidden animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <span id="btnText">Generar Ideas de Creativos</span>
+      </button>
+    </section>
+
+    <!-- Resultados -->
+    <section class="mt-8" aria-live="polite">
+      <div id="results" class="space-y-5">
+        <div id="emptyState" class="rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-10 text-center text-slate-500 dark:text-slate-500">
+          Selecciona un nicho y pulsa <strong class="text-slate-700 dark:text-slate-300">Generar Ideas de Creativos</strong> para ver tus 10 ideas aquí.
+        </div>
+      </div>
+      <div id="resultActions" class="hidden mt-5">
+        <button id="copyBtn" type="button" class="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2 text-sm transition">
+          Copiar resultados como texto
+        </button>
+      </div>
+    </section>
+
+    <!-- Esquema Meta Ads -->
+    <section class="mt-14">
+      <h2 class="text-2xl font-bold tracking-tight">Estructura recomendada en Meta Ads</h2>
+      <p class="mt-1 text-slate-500 dark:text-slate-400 text-sm">Esquema para campañas de mensajes (WhatsApp / Messenger).</p>
+
+      <div class="mt-6 grid gap-4 lg:grid-cols-[1fr_auto_1fr_auto_1.4fr] items-stretch">
+
+        <!-- Campaña -->
+        <div class="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5">
+          <div class="text-xs font-bold uppercase tracking-wider text-emerald-500">Nivel 1 · Campaña</div>
+          <h3 class="mt-1 font-semibold text-lg">Campaña de Interacción</h3>
+          <ul class="mt-3 space-y-1.5 text-sm text-slate-600 dark:text-slate-300 list-disc list-inside">
+            <li>Objetivo: Interacción → Mensajes</li>
+            <li>Destino: WhatsApp / Messenger</li>
+            <li>Presupuesto a nivel de conjunto</li>
+          </ul>
+        </div>
+
+        <div class="hidden lg:flex items-center text-slate-400 text-2xl">→</div>
+        <div class="lg:hidden text-center text-slate-400 text-2xl">↓</div>
+
+        <!-- Conjunto -->
+        <div class="rounded-2xl border border-sky-500/30 bg-sky-500/5 p-5">
+          <div class="text-xs font-bold uppercase tracking-wider text-sky-500">Nivel 2 · Conjunto</div>
+          <h3 class="mt-1 font-semibold text-lg">Conjunto de Anuncios segmentado</h3>
+          <ul class="mt-3 space-y-1.5 text-sm text-slate-600 dark:text-slate-300 list-disc list-inside">
+            <li>Ubicación y edad definidas</li>
+            <li>Intereses / públicos amplios o similares</li>
+            <li>Optimización: conversaciones</li>
+            <li>Ubicaciones Advantage+</li>
+          </ul>
+        </div>
+
+        <div class="hidden lg:flex items-center text-slate-400 text-2xl">→</div>
+        <div class="lg:hidden text-center text-slate-400 text-2xl">↓</div>
+
+        <!-- Anuncios -->
+        <div class="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-5">
+          <div class="text-xs font-bold uppercase tracking-wider text-violet-500">Nivel 3 · Anuncios</div>
+          <h3 class="mt-1 font-semibold text-lg">3 a 5 Anuncios, un ángulo cada uno</h3>
+          <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div class="rounded-lg bg-white/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5"><strong>Ad 1</strong><br />Dolor / Problema</div>
+            <div class="rounded-lg bg-white/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5"><strong>Ad 2</strong><br />Prueba social</div>
+            <div class="rounded-lg bg-white/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5"><strong>Ad 3</strong><br />Oferta / Escasez</div>
+            <div class="rounded-lg bg-white/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2.5"><strong>Ad 4–5</strong><br />Autoridad / Objeción</div>
+          </div>
+          <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Cada anuncio con su propio Hook, Cuerpo y CTA hacia el chat.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-14 text-center text-xs text-slate-500">
+      AdsCreative Generator · Tu API Key nunca pasa por ningún servidor propio.
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const MODEL = 'gemini-2.5-flash';
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+      const TIMEOUT_MS = 90000;
+      const LS_KEY = 'adscreative_gemini_key';
+
+      const $ = (id) => document.getElementById(id);
+      const apiKeyEl = $('apiKey');
+      const nicheEl = $('niche');
+      const customNicheEl = $('customNiche');
+      const btn = $('generateBtn');
+      const btnText = $('btnText');
+      const spinner = $('spinner');
+      const results = $('results');
+      const resultActions = $('resultActions');
+      const rememberEl = $('rememberKey');
+
+      /* ---------- Notificaciones ---------- */
+      function toast(message, type = 'error') {
+        const colors = {
+          error: 'border-red-500/40 bg-red-950/90 text-red-100',
+          success: 'border-emerald-500/40 bg-emerald-950/90 text-emerald-100',
+          info: 'border-sky-500/40 bg-sky-950/90 text-sky-100',
+        };
+        const el = document.createElement('div');
+        el.className = `toast-enter rounded-lg border px-4 py-3 text-sm shadow-lg backdrop-blur ${colors[type] || colors.info}`;
+        el.setAttribute('role', 'alert');
+        el.textContent = message;
+        $('toasts').appendChild(el);
+        setTimeout(() => el.remove(), 6500);
+      }
+
+      /* ---------- Tema ---------- */
+      const root = document.documentElement;
+      function applyTheme(dark) {
+        root.classList.toggle('dark', dark);
+        $('themeIcon').textContent = dark ? '☀️' : '🌙';
+      }
+      try {
+        applyTheme(localStorage.getItem('adscreative_theme') !== 'light');
+      } catch { applyTheme(true); }
+      $('themeToggle').addEventListener('click', () => {
+        const dark = !root.classList.contains('dark');
+        applyTheme(dark);
+        try { localStorage.setItem('adscreative_theme', dark ? 'dark' : 'light'); } catch {}
+      });
+
+      /* ---------- API Key ---------- */
+      try {
+        const saved = localStorage.getItem(LS_KEY);
+        if (saved) { apiKeyEl.value = saved; rememberEl.checked = true; }
+      } catch {}
+
+      $('toggleKey').addEventListener('click', () => {
+        const show = apiKeyEl.type === 'password';
+        apiKeyEl.type = show ? 'text' : 'password';
+        $('toggleKey').textContent = show ? 'Ocultar' : 'Ver';
+      });
+
+      rememberEl.addEventListener('change', () => {
+        try {
+          if (!rememberEl.checked) localStorage.removeItem(LS_KEY);
+        } catch {}
+      });
+
+      nicheEl.addEventListener('change', () => {
+        const other = nicheEl.value === '__otro';
+        customNicheEl.classList.toggle('hidden', !other);
+        if (other) customNicheEl.focus();
+      });
+
+      /* ---------- Estado de carga ---------- */
+      function setLoading(loading) {
+        btn.disabled = loading;
+        spinner.classList.toggle('hidden', !loading);
+        btnText.textContent = loading ? 'Generando ideas…' : 'Generar Ideas de Creativos';
+      }
+
+      /* ---------- Prompt ---------- */
+      const ANGLES_POOL = [
+        'dolor oculto', 'estatus social', 'miedo a perder la oportunidad', 'mito vs. realidad', 'antes y después',
+        'comparación con la competencia', 'garantía sin riesgo', 'historia de cliente', 'urgencia por fecha límite',
+        'curiosidad / loop abierto', 'autoridad de experto', 'demostración de resultado', 'simplicidad y rapidez',
+        'ahorro de dinero', 'ahorro de tiempo', 'pertenencia a una comunidad', 'objeción de precio', 'bono exclusivo',
+      ];
+
+      function pickRandom(arr, n) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy.slice(0, n);
+      }
+
+      function buildPrompt(niche) {
+        const seed = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        const hints = pickRandom(ANGLES_POOL, 6).join(', ');
+        return `Actúa como un Media Buyer Top y experto en neuromarketing.
+
+Genera 10 ideas de creativos altamente persuasivos para el nicho de: ${niche}.
+
+CONTEXTO Y OBJETIVO:
+- El objetivo de la campaña es generar leads y cierres a través de mensajes directos (WhatsApp/Messenger) en Meta Ads.
+- Cada idea debe usar un sesgo cognitivo diferente (ej. Escasez, Prueba Social, Aversión a la pérdida, Efecto Halo, Anclaje, Autoridad, Reciprocidad, Efecto Zeigarnik, Compromiso y coherencia, Efecto señuelo, etc.). No repitas ningún sesgo entre las 10 ideas.
+- Cada idea debe abordar un ángulo de venta distinto.
+- Estructura cada idea claramente utilizando un framework de conversión de alto rendimiento como el M.A.P.A. u otro similar enfocado en: Hook (Gancho visual/textual de 3 segundos), Cuerpo (Desarrollo del problema/solución) y CTA (Llamado a la acción claro hacia el chat).
+- Proporciona ideas completamente nuevas y diferentes cada vez, incluso si se te pregunta por el mismo nicho varias veces. Usa alta creatividad y evita los clichés y las ideas obvias. Semilla de variación para esta solicitud: ${seed}. Como inspiración opcional (no obligatoria), explora ángulos como: ${hints}.
+- Escribe todo en español neutro latinoamericano, con tono natural y conversacional, listo para usar en anuncios.
+- Para cada idea incluye también: el formato recomendado (Reel, imagen estática, carrusel, video UGC, etc.) con una breve descripción visual, y un mensaje de apertura sugerido que el cliente enviará al chat (el texto precargado de WhatsApp/Messenger).
+
+FORMATO DE SALIDA (MUY IMPORTANTE):
+- Devuelve la respuesta en formato HTML semántico y estilizado con clases de Tailwind CSS para que se inyecte directamente en el contenedor de resultados de la app (que tiene fondo oscuro).
+- Devuelve ÚNICAMENTE fragmento HTML. NO uses bloques de código markdown (sin \`\`\`), NO incluyas <html>, <head>, <body>, <script>, <style> ni texto fuera del HTML.
+- Usa exactamente 10 elementos <article>, uno por idea, con esta estructura y estas clases:
+  <article class="rounded-2xl border border-slate-800 bg-slate-900 p-5 sm:p-6 shadow-sm">
+    <header class="flex flex-wrap items-center gap-2 mb-3">
+      <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white text-sm font-bold">N</span>
+      <h3 class="text-lg font-bold text-slate-100">Título corto de la idea</h3>
+    </header>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 px-3 py-1 text-xs font-medium">Sesgo: …</span>
+      <span class="rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 px-3 py-1 text-xs font-medium">Ángulo: …</span>
+      <span class="rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-1 text-xs font-medium">Formato: …</span>
+    </div>
+    <div class="space-y-3 text-sm text-slate-300">
+      <section class="rounded-lg bg-slate-950 border border-slate-800 p-3"><h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">Hook (0-3 s)</h4><p>…</p></section>
+      <section class="rounded-lg bg-slate-950 border border-slate-800 p-3"><h4 class="text-xs font-bold uppercase tracking-wider text-sky-400 mb-1">Cuerpo</h4><p>…</p></section>
+      <section class="rounded-lg bg-slate-950 border border-slate-800 p-3"><h4 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">CTA</h4><p>…</p></section>
+      <p class="text-xs text-slate-400"><span class="font-semibold text-slate-300">Mensaje de apertura sugerido:</span> “…”</p>
+    </div>
+  </article>
+- Reemplaza N por el número de la idea (1 a 10) y completa cada "…" con contenido real. Nada de marcadores de posición en la respuesta final.`;
+      }
+
+      /* ---------- Saneamiento del HTML devuelto ---------- */
+      function sanitizeHTML(raw) {
+        let html = String(raw || '').trim();
+        html = html.replace(/^```(?:html)?\s*/i, '').replace(/\s*```$/i, '').trim();
+        const doc = new DOMParser().parseFromString(`<div id="__root">${html}</div>`, 'text/html');
+        const rootNode = doc.getElementById('__root');
+        rootNode.querySelectorAll('script, style, iframe, object, embed, link, meta, form, base').forEach((n) => n.remove());
+        rootNode.querySelectorAll('*').forEach((el) => {
+          [...el.attributes].forEach((attr) => {
+            const name = attr.name.toLowerCase();
+            const val = attr.value.trim().toLowerCase();
+            if (name.startsWith('on') || name === 'srcdoc' ||
+               ((name === 'href' || name === 'src' || name === 'xlink:href') && /^(javascript|data|vbscript):/.test(val))) {
+              el.removeAttribute(attr.name);
+            }
+          });
+          if (el.tagName === 'A') {
+            el.setAttribute('rel', 'noopener noreferrer');
+            el.setAttribute('target', '_blank');
+          }
+        });
+        return rootNode.innerHTML;
+      }
+
+      /* ---------- Errores de la API ---------- */
+      function httpErrorMessage(status, apiMsg) {
+        const detail = apiMsg ? ` (${apiMsg})` : '';
+        switch (status) {
+          case 400:
+            if (/api key|API_KEY_INVALID/i.test(apiMsg || '')) return 'API Key inválida. Revisa que la hayas copiado completa.';
+            return `Solicitud rechazada por la API${detail}`;
+          case 401: return 'No autorizado: la API Key no es válida.';
+          case 403: return 'Acceso denegado: tu API Key no tiene permisos o la API no está habilitada para ella.';
+          case 404: return `Modelo no encontrado${detail}`;
+          case 429: return 'Límite de uso alcanzado (cuota o rate limit). Espera un momento e inténtalo de nuevo.';
+          case 500:
+          case 502:
+          case 503:
+          case 504: return 'El servicio de Gemini está saturado o no disponible. Intenta de nuevo en unos segundos.';
+          default: return `Error ${status} de la API${detail}`;
+        }
+      }
+
+      /* ---------- Llamada a Gemini ---------- */
+      async function callGemini(apiKey, prompt) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey,
+            },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 1.4,
+                topP: 0.95,
+                topK: 64,
+                maxOutputTokens: 16384,
+              },
+            }),
+            signal: controller.signal,
+          });
+
+          let data = null;
+          try { data = await res.json(); } catch {}
+
+          if (!res.ok) {
+            throw new Error(httpErrorMessage(res.status, data?.error?.message));
+          }
+
+          const cand = data?.candidates?.[0];
+          if (!cand) {
+            const block = data?.promptFeedback?.blockReason;
+            throw new Error(block
+              ? `La solicitud fue bloqueada por los filtros de seguridad (${block}). Prueba con otro nicho.`
+              : 'La API no devolvió resultados. Inténtalo de nuevo.');
+          }
+          const text = (cand.content?.parts || []).map((p) => p.text || '').join('');
+          if (!text.trim()) {
+            throw new Error(cand.finishReason === 'SAFETY'
+              ? 'Respuesta bloqueada por filtros de seguridad. Prueba con otro nicho.'
+              : 'La API devolvió una respuesta vacía. Inténtalo de nuevo.');
+          }
+          return text;
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            throw new Error('Tiempo de espera agotado. La API tardó demasiado en responder; inténtalo de nuevo.');
+          }
+          if (err instanceof TypeError) {
+            throw new Error('No se pudo conectar con la API. Revisa tu conexión a internet o bloqueadores del navegador.');
+          }
+          throw err;
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      /* ---------- Acción principal ---------- */
+      btn.addEventListener('click', async () => {
+        const apiKey = apiKeyEl.value.trim();
+        let niche = nicheEl.value;
+        if (niche === '__otro') niche = customNicheEl.value.trim();
+
+        if (!apiKey) { toast('Ingresa tu API Key de Gemini.'); apiKeyEl.focus(); return; }
+        if (!niche) {
+          toast(nicheEl.value === '__otro' ? 'Escribe tu nicho.' : 'Selecciona un nicho.');
+          (nicheEl.value === '__otro' ? customNicheEl : nicheEl).focus();
+          return;
+        }
+
+        try {
+          if (rememberEl.checked) localStorage.setItem(LS_KEY, apiKey);
+          else localStorage.removeItem(LS_KEY);
+        } catch {}
+
+        setLoading(true);
+        resultActions.classList.add('hidden');
+        results.innerHTML = `
+          <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center text-slate-500 dark:text-slate-400">
+            <div class="animate-pulse">Creando 10 ideas para <strong class="text-slate-700 dark:text-slate-200">${niche.replace(/[<>&"]/g, '')}</strong>… esto puede tardar hasta un minuto.</div>
+          </div>`;
+
+        try {
+          const raw = await callGemini(apiKey, buildPrompt(niche));
+          const html = sanitizeHTML(raw);
+          if (!html || !/<article/i.test(html)) {
+            throw new Error('La respuesta no tuvo el formato esperado. Pulsa de nuevo para regenerar.');
+          }
+          results.innerHTML = html;
+          resultActions.classList.remove('hidden');
+          toast('¡Ideas generadas con éxito!', 'success');
+          results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+          results.innerHTML = `
+            <div class="rounded-2xl border border-red-500/30 bg-red-500/5 p-6 text-center text-red-400 text-sm">
+              No se pudieron generar las ideas. Revisa el mensaje de error e inténtalo de nuevo.
+            </div>`;
+          toast(err.message || 'Ocurrió un error inesperado.');
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      /* ---------- Copiar resultados ---------- */
+      $('copyBtn').addEventListener('click', async () => {
+        const text = results.innerText.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          toast('Resultados copiados al portapapeles.', 'success');
+        } catch {
+          toast('No se pudo copiar. Selecciona el texto manualmente.');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
