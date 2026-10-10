@@ -30,13 +30,13 @@ El usuario ingresa su API Key y elige un nicho.
 La clave se envía en la cabecera `x-goog-api-key` (no en la URL).
 `temperature: 1.4`, `topP: 0.95`, `topK: 64` para favorecer la creatividad.
 Timeout de 90 segundos con `AbortController`.
-La respuesta (HTML con clases de Tailwind) pasa por `sanitizeHTML()`, que elimina `<script>`, `<iframe>`, atributos `on*` y enlaces `javascript:`, y luego se inyecta en `#results`.
+La respuesta (HTML con clases de Tailwind) pasa por `sanitizeHTML()`, que elimina `<script>`, `<iframe>`, atributos `on\*` y enlaces `javascript:`, y luego se inyecta en `#results`.
 Los errores (clave inválida, cuota, timeout, sin conexión, respuesta bloqueada) se muestran como notificaciones en pantalla.
 Parámetros que puedes modificar
 Están al inicio del bloque `<script>` de `index.html`:
 ```js
 const MODEL = 'gemini-2.5-flash';  // modelo de Gemini a usar
-const TIMEOUT_MS = 90000;          // tiempo máximo de espera (ms)
+const TIMEOUT\_MS = 90000;          // tiempo máximo de espera (ms)
 ```
 Para añadir nichos, agrega una línea `<option>` dentro del `<select id="niche">`.
 ---
@@ -100,7 +100,7 @@ Mensaje / síntoma	Causa probable	Solución
 "Acceso denegado" (403)	La clave no tiene permisos o tiene restricciones	Revisa las restricciones de la clave en Google Cloud
 "Límite de uso alcanzado" (429)	Cuota gratuita agotada o demasiadas solicitudes	Espera unos minutos o revisa tu cuota
 "Modelo no encontrado" (404)	El nombre del modelo cambió o fue retirado	Cambia `MODEL` por un modelo vigente de Gemini
-"Tiempo de espera agotado"	La API tardó más de 90 s	Inténtalo de nuevo o sube `TIMEOUT_MS`
+"Tiempo de espera agotado"	La API tardó más de 90 s	Inténtalo de nuevo o sube `TIMEOUT\_MS`
 "No se pudo conectar con la API"	Sin internet o un bloqueador de anuncios/extensión interfiere	Revisa la conexión o desactiva extensiones
 "La respuesta no tuvo el formato esperado"	Gemini no devolvió las 10 tarjetas en HTML	Pulsa de nuevo el botón para regenerar
 El diseño se ve sin estilos	El CDN de Tailwind no cargó	Revisa tu conexión a internet
